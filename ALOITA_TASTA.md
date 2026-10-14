@@ -1,8 +1,8 @@
-# NextRep beta 0.1 — aloita tästä
+# FastRep beta 0.2 — aloita tästä
 
 Tässä ZIP-paketissa on nettibetan koko lähdekoodi: käyttöliittymä, palvelinreitit,
 tietokannan rakenne ja migraatiot, testit, riippuvuuksien lukitustiedosto ja rakennusskriptit.
-Paketti vastaa julkaistun version lähdekoodia. Tämä ohje on lisätty vientiä varten.
+Ajantasainen lähdekoodi on tässä GitHub-repositoriossa. Sovelluksen nimi on nyt FastRep; repon osoite pysyy samana.
 
 ## Käynnistys omalla koneella
 
@@ -66,25 +66,22 @@ pnpm build
 Alkuperäisessä kehitysympäristössä TypeScript-tarkistus, tuotantokäännös ja palvelinlogiikan
 testit läpäistiin. Pelkkää ZIP-vientiä varten niitä ei ajettu uudelleen.
 
-## GitHubiin
+## GitHub ja julkaisu
 
-Luo oma tyhjä yksityinen nextrep-repo. Kansion sisällä voit käyttää GitHub Desktopia
-tai seuraavia komentoja. Korvaa OMATUNNUS omalla GitHub-tunnuksellasi.
+Lähdekoodi: https://github.com/fastilukas009/nextrep
+Nettibeta: https://nextrep-beta.qwerxm.chatgpt.site
 
-```bash
-git init -b main
-git add .
-git commit -m "Initial NextRep beta"
-git remote add origin https://github.com/OMATUNNUS/nextrep.git
-git push -u origin main
-```
+GitHub säilyttää lähdekoodin. Sovellus käyttää Sites-julkaisualustaa, Cloudflare Workersia ja D1-tietokantaa. GitHub Pages ei suorita sen palvelinreittejä. Projektin tunnus ja tietokanta on säilytetty nimenmuutoksen yhteydessä.
 
-GitHubiin siirto tallentaa lähdekoodin. Se ei yksin julkaise sovellusta nettiin.
-Tämä versio käyttää Cloudflare Workersia ja D1:tä sekä Sites-alustan kirjautumista.
-Se ei toimi sellaisenaan GitHub Pagesissa, joka ei suorita näitä palvelinreittejä.
-Muulle alustalle siirrettäessä pitää sovittaa kirjautuminen, tietokantayhteys ja julkaisu.
-.openai/hosting.json viittaa nykyiseen NextRep-sivustoon; älä käytä sen projektitunnusta
-uuden erillisen sivuston tunnuksena.
+## Beta 0.2:n uudistukset
+
+- FastRep-nimi, uusi etusivu ja viiden pääosion navigointi.
+- Harjoittelutila sarjoille, painoille ja toistoille, treeni- ja palautusajastimet.
+- Keskeneräisen treenin pienentäminen ja jatkaminen samalla sivulla.
+- Aterioiden muokkaus, pikalisäys aiemmasta ateriasta sekä usean raaka-aineen laskuri.
+- Päiväkohtainen ravintopäiväkirja, harjoitushistoria ja viikkonäkymä.
+
+Keskeneräinen treeni säilyy tämän sivun muistissa, ei täyden sivupäivityksen yli. Tallennetut treenit pysyvät tietokannassa. Automaattinen ruoka- tai heittoanalyysi ei vielä ole käytössä.
 
 ## Rehellinen toteutustilanne
 
