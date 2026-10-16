@@ -2,16 +2,10 @@ import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '../../chatgpt-auth';
 import { defaultProfile, programs, challenges, shop } from '../../model';
 import { z } from 'zod';
+import { schemas } from '../../validation';
 export const dynamic='force-dynamic';
 const response=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store'}});
 function db(){if(!env.DB)throw Error('Tallennus ei ole käytettävissä.');return env.DB;}
-const integer=(max=10000)=>z.number().int().min(0).max(max),label=z.string().trim().min(1).max(80);
-const schemas={
- profile:z.object({name:label,goal:z.enum(['Kokonaisvaltainen kehitys','Voima','Heittotaito','Liikkuvuus']),days:z.number().int().min(1).max(7),diet:z.enum(['Kaikki','Kasvis','Maidoton']),frame:z.enum(['default','lime','orange','purple'])}),
- workout:z.object({program:z.enum(['foundation','court','reset']),sets:z.array(z.boolean()).max(12),notes:z.string().max(500),duration:integer(86400).optional(),effort:z.number().int().min(1).max(10).nullable().optional(),logs:z.array(z.object({name:label,sets:z.array(z.object({done:z.boolean(),reps:integer(500).nullable(),weight:z.number().min(0).max(500).nullable()})).min(1).max(10)})).max(12).optional()}),skill:z.object({skill:z.enum(['crossover','hesitation','footwork'])}),
- meal:z.object({name:label,kcal:integer(10000),p:z.number().min(0).max(1000),c:z.number().min(0).max(2000),f:z.number().min(0).max(1000)}),
- challenge:z.object({challenge:z.enum(['free20','minute','around']),made:integer(200),attempts:integer(200)}),review:z.object({notes:z.string().max(1000),checks:z.array(z.boolean()).max(5),angle:z.number().min(0).max(180).nullable()}),
-};
 async function snapshot(uid:string){const d=db();const [profile,list,earned,spent,owned]=await Promise.all([
  d.prepare('SELECT data FROM profiles WHERE user_id=?').bind(uid).first<{data:string}>(),d.prepare('SELECT * FROM entries WHERE user_id=? ORDER BY at DESC LIMIT 300').bind(uid).all<any>(),
  d.prepare('SELECT COALESCE(SUM(xp),0) AS xp, COALESCE(SUM(coins),0) AS coins FROM entries WHERE user_id=?').bind(uid).first<any>(),d.prepare('SELECT COALESCE(SUM(cost),0) AS spent FROM purchases WHERE user_id=?').bind(uid).first<any>(),d.prepare('SELECT item FROM purchases WHERE user_id=?').bind(uid).all<{item:string}>()]);

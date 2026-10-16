@@ -22,7 +22,8 @@ const DB = {
 let user={userId:'alice',email:'test@example.invalid'};
 function moduleAt(path,deps={}){const output=ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const mod={exports:{}};vm.runInNewContext(output,{module:mod,exports:mod.exports,require:id=>deps[id]||require(id),Response,Request,URL,Date,Intl,crypto,console},{filename:path});return mod.exports}
 const model=moduleAt('app/model.ts');
-const api=moduleAt('app/api/nextrep/route.ts',{'cloudflare:workers':{env:{DB}},'../../chatgpt-auth':{getChatGPTUser:async()=>user},'../../model':model});
+const validation=moduleAt('app/validation.ts',{'./model':model});
+const api=moduleAt('app/api/nextrep/route.ts',{'cloudflare:workers':{env:{DB}},'../../chatgpt-auth':{getChatGPTUser:async()=>user},'../../model':model,'../../validation':validation});
 async function post(body){const r=await api.POST(new Request('https://nextrep.test/api/nextrep',{method:'POST',headers:{origin:'https://nextrep.test','Content-Type':'application/json'},body:JSON.stringify(body)}));return {status:r.status,data:await r.json()}}
 async function get(query=''){const r=await api.GET(new Request('https://nextrep.test/api/nextrep'+query));return {status:r.status,data:await r.json()}}
 (async()=>{

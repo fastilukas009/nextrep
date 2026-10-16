@@ -259,3 +259,9 @@ dialog::backdrop { background:#10241975; backdrop-filter:blur(4px); }
 .shot-dots i { height:9px; width:9px; border-radius:50%; background:#d9e2cc; }
 .shot-dots .hit { background:#8db54e; }.shot-dots .miss { background:#d5a991; }
 @media(max-width:700px) { .challenge-picker { gap:9px; }.challenge-picker .challenge-choice { padding:13px 10px; border-radius:12px; }.challenge-picker .challenge-choice h3 { font-size:12px; line-height:1.4; margin:0; }.challenge-picker .challenge-choice p,.challenge-picker .challenge-choice .eyebrow { display:none; } }
+
+.browser-note { display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin:0 0 24px; color:var(--muted); font-size:13px; }
+.browser-note .text-btn { font-size:13px; margin-left:auto; }
+.backup-panel { border-top:1px solid var(--line); margin-top:28px; padding-top:24px; }
+.backup-panel .muted { font-size:13px; }
+.backup-confirm { padding:16px; border:1px solid var(--line); border-radius:12px; margin-top:18px; background:var(--bg); }

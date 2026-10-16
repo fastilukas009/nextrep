@@ -1,2 +1,5 @@
-FastRep beta 0.2
-Source commit: b31f92f205613577c8c263e33affefd2b44a4b8b
+FastRep GitHub Pages build
+Base: FastRep beta 0.2 / 758fd140e6e184532f5adeb397236c7985777728
+Source: app/ + pages/ + vite.pages.config.ts
+Build: pnpm build:pages
+Publish: main /docs
