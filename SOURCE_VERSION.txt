@@ -1,5 +1,0 @@
-FastRep GitHub Pages build
-Base: FastRep beta 0.2 / 758fd140e6e184532f5adeb397236c7985777728
-Source: app/ + pages/ + vite.pages.config.ts
-Build: pnpm build:pages
-Publish: main /docs

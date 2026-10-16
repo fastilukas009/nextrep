@@ -1,5 +1,0 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-export const profiles = sqliteTable('profiles', {userId:text('user_id').primaryKey(),data:text('data').notNull()});
-export const entries = sqliteTable('entries', {id:text('id').primaryKey(),userId:text('user_id').notNull(),kind:text('kind').notNull(),day:text('day').notNull(),data:text('data').notNull(),xp:integer('xp').notNull().default(0),coins:integer('coins').notNull().default(0),at:integer('at').notNull()});
-export const purchases = sqliteTable('purchases', {id:text('id').primaryKey(),userId:text('user_id').notNull(),item:text('item').notNull(),cost:integer('cost').notNull()});
-export const rooms = sqliteTable('rooms', {code:text('code').primaryKey(),host:text('host').notNull(),guest:text('guest'),hostName:text('host_name').notNull(),guestName:text('guest_name'),starts:integer('starts'),expires:integer('expires').notNull(),hostMade:integer('host_made').notNull().default(0),hostAttempts:integer('host_attempts').notNull().default(0),guestMade:integer('guest_made').notNull().default(0),guestAttempts:integer('guest_attempts').notNull().default(0)});
