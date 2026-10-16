@@ -265,3 +265,19 @@ dialog::backdrop { background:#10241975; backdrop-filter:blur(4px); }
 .backup-panel { border-top:1px solid var(--line); margin-top:28px; padding-top:24px; }
 .backup-panel .muted { font-size:13px; }
 .backup-confirm { padding:16px; border:1px solid var(--line); border-radius:12px; margin-top:18px; background:var(--bg); }
+
+/* Local guide cards link out only when tapped; no third-party embeds load here. */
+.video-guide { margin:18px 0 22px; text-align:left; }
+.video-guide-link { display:flex; align-items:center; gap:12px; min-height:62px; padding:13px 15px; border:1px solid #dce5d4; border-radius:12px; background:#f5f8f0; transition:background .15s,border-color .15s; }
+.video-guide-link:hover { background:#eaf2df; border-color:#a7bf8c; }
+.video-guide-icon { width:35px; height:35px; flex-shrink:0; display:grid; place-items:center; border-radius:10px; background:#e2ebd6; color:var(--green); }
+.video-guide-copy { min-width:0; flex:1; }
+.video-guide-copy strong { display:block; font-size:14px; line-height:1.4; color:var(--green); }
+.video-guide-copy small { display:block; margin-top:3px; font-size:11px; line-height:1.5; color:var(--muted); overflow-wrap:anywhere; }
+.video-guide-link>svg { flex-shrink:0; color:var(--muted); }
+.video-guide>p { margin:9px 0 0; font-size:12px; line-height:1.55; color:var(--muted); }
+.video-guide-compact { margin:10px 0 0; }
+.video-guide-compact .video-guide-link { padding:9px 11px; min-height:52px; gap:9px; }
+.video-guide-compact .video-guide-icon { width:28px; height:28px; border-radius:8px; }
+.video-guide-compact .video-guide-copy strong { font-size:12px; }
+.video-guide-compact .video-guide-copy small { font-size:10px; }

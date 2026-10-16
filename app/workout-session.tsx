@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Clock, Dumbbell, Pause, Play, RotateCcw, Timer, X } from 'lucide-react';
 import { elapsedSeconds, sessionProgress, timerText, type WorkoutDraft } from './training';
+import { exerciseGuides } from './video-guides';
+import { VideoGuideLink } from './video-guide-link';
 
 type Props = {
   draft: WorkoutDraft; open: boolean; busy: boolean; error: string;
@@ -41,6 +43,7 @@ export function WorkoutSession({ draft, open, busy, error, change, minimize, dis
     <div className="progress"><i style={{ width: `${progress.complete / progress.total * 100}%` }}/></div>
     <div className="exercise-tabs" aria-label="Harjoitteet">{draft.logs.map((log, index) => <button key={log.name} aria-current={index === draft.current ? 'step' : undefined} aria-label={`${index + 1}. ${log.name}`} className={`${index === draft.current ? 'selected' : ''} ${log.sets.every(set => set.done) ? 'completed' : ''}`} onClick={() => change({ ...draft, current: index })}>{log.sets.every(set => set.done) ? <Check size={16}/> : index + 1}</button>)}</div>
     <div className="exercise-title"><span className="eyebrow">HARJOITE {draft.current + 1} / {draft.logs.length}</span><h3>{exercise.name}</h3><p>{prescription} <span>· {isTimed ? 'Merkitse tehdyksi, kun olet valmis.' : 'Paino on vapaaehtoinen. Kirjaa omat toistot.'}</span></p></div>
+    <VideoGuideLink guide={exerciseGuides[exercise.name]}/>
     <div className={`set-table ${isTimed ? 'timed' : ''}`}>
       <div className="set-table-head"><span>Sarja</span>{!isTimed && <><span>Paino, kg</span><span>Toistot</span></>}<span>Valmis</span></div>
       {exercise.sets.map((set, index) => <div className={`set-row ${set.done ? 'is-done' : ''}`} key={index}>
