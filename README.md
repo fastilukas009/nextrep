@@ -4,12 +4,9 @@ A Finnish, mobile-first training app for basketball players. React + TypeScript,
 
 ## GitHub Pages – avaa FastRep selaimessa
 
-Julkaisuosoite, kun Pages on otettu käyttöön: **https://fastilukas009.github.io/nextrep/**
+Julkaistu sovellus: **https://fastilukas009.github.io/nextrep/**
 
-Valmis staattinen sovellus on `docs/`-kansiossa. Ota julkaisu kerran käyttöön:
-1. Avaa https://github.com/fastilukas009/nextrep/settings/pages.
-2. Valitse **Source → Deploy from a branch**.
-3. Valitse **main** ja **/docs**, sitten **Save**.
+GitHub Pages on käytössä. Julkaisulähde on **gh-pages-haaran juuri (/)**. Haara sisältää valmiin `docs/`-kansion tiedostot juuressaan. Main-haarassa säilyvät lähdekoodi ja valmis docs-versio. Erillistä käyttöönottoa ei tarvita.
 
 Tämä versio avautuu ilman tiliä tai ChatGPT-kirjautumista. Treenit, ateriat, heittohaasteet, taitoharjoitteet, videoiden manuaalinen tarkastelu, palkinnot ja profiili toimivat selaimessa. Valmiit kirjaukset tallentuvat paikallisesti selaimeen. **Oma profiili → Lataa varmuuskopio** tallentaa JSON-tiedoston, jonka voi palauttaa toisella laitteella. Selaintietojen tyhjentäminen poistaa paikalliset kirjaukset. Videot eivät tallennu päiväkirjaan eivätkä varmuuskopioon.
 
@@ -23,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm build:pages
 ```
 
-Vie lähdekoodimuutokset **sekä päivitetty docs-kansio** GitHubin main-haaraan. GitHub julkaisee tämän kansion. `docs/` luodaan uudelleen `pages/`-aloitustiedostoista ja yhteisistä `app/`-komponenteista. Älä muokkaa generoituja tiedostoja käsin. Suhteelliset resurssipolut ja hash-navigaatio tukevat `/nextrep/`-alihakemistoa.
+Vie lähdekoodimuutokset **sekä päivitetty docs-kansio** GitHubin main-haaraan. Julkaise sitten docs-kansion sisältö gh-pages-haaran juureen tavallisena uutena commitina: GitHub Pages seuraa gh-pages-haaraa, joten pelkkä main-päivitys ei päivitä julkista sivua. `docs/` luodaan uudelleen `pages/`-aloitustiedostoista ja yhteisistä `app/`-komponenteista. Älä muokkaa generoituja tiedostoja käsin. Suhteelliset resurssipolut ja hash-navigaatio tukevat `/nextrep/`-alihakemistoa.
 
 Tarkistukset: `pnpm test:pages`, `node tests/core.test.cjs` ja `node node_modules/typescript/bin/tsc --noEmit`. Core-testit käyttävät Node 24:n SQLitea. Selain-/kameratestiä ei ole suoritettu tässä ympäristössä.
 

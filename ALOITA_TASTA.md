@@ -1,13 +1,9 @@
-# FastRep GitHub-sivustolle
+# FastRep on julkaistu
 
-Sovellus on valmiiksi rakennettuna **docs**-kansiossa.
+Avaa sovellus: **https://fastilukas009.github.io/nextrep/**
 
-1. Avaa [GitHub Pages -asetukset](https://github.com/fastilukas009/nextrep/settings/pages).
-2. Valitse **Deploy from a branch**.
-3. Valitse haaraksi **main**, kansioksi **/docs** ja paina **Save**.
-
-Julkaisun valmistuttua sivusto avautuu osoitteessa https://fastilukas009.github.io/nextrep/ ilman ChatGPT-kirjautumista. Julkaisu voi kestää muutaman minuutin.
+Sovellus toimii ilman ChatGPT-kirjautumista. GitHub Pages on käytössä ja julkaisee **gh-pages-haaran juuresta (/)**. Asetuksia ei tarvitse enää muuttaa.
 
 Tiedot tallentuvat tähän selaimeen. Varmuuskopion saa sovelluksesta **Oma profiili → Lataa varmuuskopio**. Live-kisat ja automaattinen laitteiden välinen synkronointi tarvitsevat erillisen palvelimen.
 
-Myöhemmät koodimuutokset: suorita `pnpm build:pages` ja vie päivitetty `docs/` lähdekoodin mukana main-haaraan. Tarkemmat ohjeet ovat README.md-tiedostossa.
+Koodimuutosten jälkeen suorita `pnpm build:pages`, vie lähdekoodi ja docs-kansio main-haaraan sekä docs-kansion sisältö gh-pages-haaran juureen uudessa commitissa. GitHub julkaisee gh-pages-haaran muutokset automaattisesti. Tarkemmat ohjeet ovat README.md-tiedostossa.
