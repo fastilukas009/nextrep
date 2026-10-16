@@ -70,7 +70,7 @@ assert.equal((await get()).data.entries.find(e=>e.id===before.id).data.kcal,500)
 assert.equal((await post({action:'editMeal',id:'alice:'+workout.id,data:meal})).status,404);
 // Exercise logger: actual program prescriptions, pause/resume duration and persisted structured logs.
 const training=moduleAt('app/training.ts',{'./model':model});
-const logs=training.makeLogs(model.programs[0]);
+const logs=training.makeLogs(model.legacyPrograms[0]);
 assert.equal(logs.length,6);assert.equal(logs[0].sets.length,1);assert.equal(logs[1].sets.length,3);
 assert.equal(logs[1].sets[0].reps,'8');
 assert.equal(training.sessionProgress(logs).total,14);
@@ -88,5 +88,11 @@ const incomplete=JSON.parse(JSON.stringify(detailed));incomplete.id=crypto.rando
 assert.equal((await post(incomplete)).status,400);
 const missingSet=JSON.parse(JSON.stringify(detailed));missingSet.id=crypto.randomUUID();missingSet.data.logs[1].sets.pop();
 assert.equal((await post(missingSet)).status,400);
+// Every expanded program must also save through the existing API path.
+for(const program of model.programs){
+ const logs=training.makeLogs(program).map(log=>({name:log.name,sets:log.sets.map(set=>({done:true,reps:set.reps?Number(set.reps):null,weight:null}))}));
+ const result=await post({action:'entry',kind:'workout',id:crypto.randomUUID(),data:{program:program.id,sets:program.exercises.map(()=>true),logs,notes:'',duration:1200}});
+ assert.equal(result.status,200,program.id);
+}
 console.log('PASS: core API, authorization, meal editing, structured workouts, backward compatibility, rewards and live-room timing.');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { Activity, ArrowRight, Check, ChevronRight, Coins, Crosshair, Dumbbell, Gift, Lock, Target, Trophy, Utensils, Zap } from 'lucide-react';
-import { programs, skills, challenges, shop, type AppData, type Entry } from './model';
+import { allPrograms, skills, challenges, shop, type AppData, type Entry } from './model';
 export const dayKey = (time: number) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Helsinki' }).format(time);
 export function entryTitle(entry: Entry) {
-  if (entry.kind === 'workout') return programs.find(p => p.id === entry.data.program)?.title ?? 'Harjoitus';
+  if (entry.kind === 'workout') return allPrograms.find(p => p.id === entry.data.program)?.title ?? 'Harjoitus';
   if (entry.kind === 'meal') return entry.data.name;
   if (entry.kind === 'challenge') return challenges.find(c => c.id === entry.data.challenge)?.name ?? 'Heittohaaste';
   if (entry.kind === 'skill') return skills.find(s => s.id === entry.data.skill)?.title ?? 'Taitoharjoitus';

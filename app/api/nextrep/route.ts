@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '../../chatgpt-auth';
-import { defaultProfile, programs, challenges, shop } from '../../model';
+import { defaultProfile, allPrograms, challenges, shop } from '../../model';
 import { z } from 'zod';
 import { schemas } from '../../validation';
 export const dynamic='force-dynamic';
@@ -22,7 +22,7 @@ export async function POST(req:Request){try{
  }else if(body.action==='entry'){
  const kind=z.enum(['workout','skill','meal','challenge','review']).parse(body.kind),data:any=schemas[kind].parse(body.data);
  if(kind==='challenge'){const c=challenges.find(c=>c.id===data.challenge)!;if(data.made>data.attempts||data.attempts<1||(c.limit&&data.attempts!==c.limit))return response({error:'Tarkista heittojen määrä.'},400);}
- if(kind==='workout'){const p=programs.find(p=>p.id===data.program)!;if(data.sets.length!==p.exercises.length||!data.sets.every(Boolean))return response({error:'Kirjaa harjoitteet ennen tallennusta.'},400);if(data.logs&&(data.logs.length!==p.exercises.length||data.logs.some((log:any,i:number)=>log.name!==p.exercises[i][0]||log.sets.length!==Number(p.exercises[i][1].match(/^(\d+)\s*×/)?.[1]||1)||!log.sets.every((s:any)=>s.done))))return response({error:'Tarkista harjoituksen sarjamerkinnät.'},400);}
+ if(kind==='workout'){const p=allPrograms.find(p=>p.id===data.program)!;if(data.sets.length!==p.exercises.length||!data.sets.every(Boolean))return response({error:'Kirjaa harjoitteet ennen tallennusta.'},400);if(data.logs&&(data.logs.length!==p.exercises.length||data.logs.some((log:any,i:number)=>log.name!==p.exercises[i][0]||log.sets.length!==Number(p.exercises[i][1].match(/^(\d+)\s*×/)?.[1]||1)||!log.sets.every((s:any)=>s.done))))return response({error:'Tarkista harjoituksen sarjamerkinnät.'},400);}
  const id=uid+':'+z.string().uuid().parse(body.id),xp=kind==='workout'?100:kind==='challenge'?50:kind==='skill'?30:kind==='review'?20:0,coins=kind==='workout'?30:kind==='challenge'?15:kind==='skill'?10:0;
  await d.prepare(`INSERT OR IGNORE INTO entries(id,user_id,kind,day,data,xp,coins,at) SELECT ?,?,?,?,?,CASE WHEN EXISTS(SELECT 1 FROM entries WHERE user_id=? AND kind=? AND day=?) THEN 0 ELSE ? END,CASE WHEN EXISTS(SELECT 1 FROM entries WHERE user_id=? AND kind=? AND day=?) THEN 0 ELSE ? END,?`).bind(id,uid,kind,day,JSON.stringify(data),uid,kind,day,xp,uid,kind,day,coins,now).run();
  }else if(body.action==='roomCreate'){const count=await d.prepare('SELECT COUNT(*) AS n FROM rooms WHERE host=? AND expires>?').bind(uid,now).first<{n:number}>();if((count?.n||0)>=5)return response({error:'Sinulla on jo viisi avointa huonetta. Huoneet vanhenevat kahdessa tunnissa.'},429);const p=await snapshot(uid),code=crypto.randomUUID().replaceAll('-','').slice(0,8).toUpperCase();await d.prepare('INSERT INTO rooms(code,host,host_name,expires) VALUES(?,?,?,?)').bind(code,uid,p.profile.name,now+7200000).run();return response(publicRoom(await d.prepare('SELECT * FROM rooms WHERE code=?').bind(code).first(),uid));

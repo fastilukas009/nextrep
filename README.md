@@ -62,3 +62,11 @@ Public source mirror: https://github.com/fastilukas009/nextrep. The repository U
 
 ## Validation
 TypeScript compilation, production build and API/core checks are run before deployment. The API checks execute the actual route handlers against an isolated in-memory SQLite adapter. Browser and device testing has not been performed in this environment; camera permissions/codec support, accessibility and two-phone live play still need real-device verification.
+
+## Solo training library
+
+The training library has 11 areas: strength, explosiveness, mobility, core, legs, arms, finishing, midrange, three-point shooting, passing and defending. Program equipment, solo setup and prescriptions live in `app/model.ts`. Video links, chapter offsets, coaching cues, tracking modes and rest periods live in `app/video-guides.ts`. Links open YouTube only when selected; no embedded players or third-party thumbnails load in the app.
+
+The original three program definitions remain in `legacyPrograms` so existing histories and backups still validate. Do not change historical prescriptions in place. The active library uses separate program IDs.
+
+Run `node tests/catalog.test.cjs` to check catalog coverage, workout rendering, filters, timed-set handling and old/new backup roundtrips.

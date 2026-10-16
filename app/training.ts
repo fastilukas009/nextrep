@@ -7,10 +7,12 @@ export type WorkoutDraft = {
   id: string; program: Program; logs: ExerciseLog[]; current: number;
   notes: string; effort: number; elapsed: number; runningSince: number | null;
 };
+export const isTimedPrescription = (prescription: string) => /min|sek|\d\s*s(?:\s|\/|$)/.test(prescription);
+
 export function makeLogs(program: Program): ExerciseLog[] {
   return program.exercises.map(([name, prescription]) => {
     const match = prescription.match(/^(\d+)\s*×\s*(\d+)/);
-    const reps = match?.[2] ?? (prescription.includes('heittoa') ? prescription.match(/\d+/)?.[0] ?? '' : '');
+    const reps = isTimedPrescription(prescription) ? '' : match?.[2] ?? (prescription.includes('heittoa') ? prescription.match(/\d+/)?.[0] ?? '' : '');
     return { name, sets: Array.from({ length: match ? Number(match[1]) : 1 }, () => ({ done: false, reps, weight: '' })) };
   });
 }
@@ -23,3 +25,11 @@ export function elapsedSeconds(draft: WorkoutDraft, now: number) {
   return Math.max(0, Math.floor(draft.elapsed + (draft.runningSince === null ? 0 : (now - draft.runningSince) / 1000)));
 }
 export const timerText = (seconds: number) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+
+export function orderPrograms(goal: string): Program[] {
+  const priority = (program: Program) => goal === 'Heittotaito'
+    ? (['finishing', 'midrange', 'threepoint'].includes(program.area) ? 0 : 1)
+    : goal === 'Liikkuvuus' ? (program.area === 'mobility' ? 0 : 1)
+    : goal === 'Voima' ? (['strength', 'legs', 'arms'].includes(program.area) ? 0 : 1) : 0;
+  return [...programs].sort((a, b) => priority(a) - priority(b));
+}
