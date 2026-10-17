@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { allPrograms, challenges } from './model';
 const integer=(max=10000)=>z.number().int().min(0).max(max),label=z.string().trim().min(1).max(80);
 export const schemas={
- profile:z.object({name:label,goal:z.enum(['Kokonaisvaltainen kehitys','Voima','Heittotaito','Liikkuvuus']),days:z.number().int().min(1).max(7),diet:z.enum(['Kaikki','Kasvis','Maidoton']),frame:z.enum(['default','lime','orange','purple'])}),
+ profile:z.object({name:label,goal:z.enum(['Kokonaisvaltainen kehitys','Voima','Heittotaito','Liikkuvuus']),days:z.number().int().min(1).max(7),diet:z.enum(['Kaikki','Kasvis','Maidoton']),frame:z.enum(['default','lime','orange','purple']),macroTargets:z.object({kcal:z.number().int().min(500).max(10000),p:z.number().min(0).max(1000),c:z.number().min(0).max(2000),f:z.number().min(0).max(1000)}).optional()}),
  workout:z.object({program:z.string().refine(id => allPrograms.some(program => program.id === id), 'Tuntematon harjoitus.'),sets:z.array(z.boolean()).max(12),notes:z.string().max(500),duration:integer(86400).optional(),effort:z.number().int().min(1).max(10).nullable().optional(),logs:z.array(z.object({name:label,sets:z.array(z.object({done:z.boolean(),reps:integer(500).nullable(),weight:z.number().min(0).max(500).nullable()})).min(1).max(10)})).max(12).optional()}),skill:z.object({skill:z.enum(['crossover','hesitation','footwork'])}),
  meal:z.object({name:label,kcal:integer(10000),p:z.number().min(0).max(1000),c:z.number().min(0).max(2000),f:z.number().min(0).max(1000)}),
- challenge:z.object({challenge:z.enum(['free20','minute','around']),made:integer(200),attempts:integer(200)}),review:z.object({notes:z.string().max(1000),checks:z.array(z.boolean()).max(5),angle:z.number().min(0).max(180).nullable()}),
+ challenge:z.object({challenge:z.enum(['free20','minute','around']),made:integer(200),attempts:integer(200)}),review:z.object({notes:z.string().max(1000),checks:z.array(z.boolean()).max(5),angle:z.number().min(0).max(180).nullable(),duration:z.number().min(0).max(10800).optional(),measurements:z.array(z.object({id:z.string().max(100),kind:z.enum(['elbow','knee','body']),angle:z.number().min(0).max(180),time:z.number().min(0).max(10800),points:z.array(z.object({x:z.number().min(0).max(1),y:z.number().min(0).max(1)})).length(3)})).max(24).optional()}),
 };
 
 export type EntryKind = keyof Omit<typeof schemas, 'profile'>;

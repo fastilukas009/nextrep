@@ -1,5 +1,6 @@
 export type Entry = {id:string;kind:string;day:string;at:number;data:Record<string,any>;xp:number;coins:number};
-export type Profile = {name:string;goal:string;days:number;diet:string;frame:string};
+export type MacroTargets = {kcal:number;p:number;c:number;f:number};
+export type Profile = {name:string;goal:string;days:number;diet:string;frame:string;macroTargets?:MacroTargets};
 export type AppData = {profile:Profile;entries:Entry[];xp:number;coins:number;owned:string[]};
 export const defaultProfile:Profile={name:'Pelaaja',goal:'Kokonaisvaltainen kehitys',days:3,diet:'Kaikki',frame:'default'};
 // Retained for saved workouts and backups from the first beta. Do not edit their prescriptions.

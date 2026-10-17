@@ -47,6 +47,8 @@ const workout = () => entry('workout', { program: 'foundation', sets: Array(6).f
   assert.equal(local.snapshot(state).coins, 0);
   assert.throws(() => local.applyLocalMutation(state, { action: 'buy', item: 'lime' }), /Kolikot/);
   state = local.applyLocalMutation(state, { action: 'profile', data: { ...model.defaultProfile, name: 'Lukas', frame: 'lime' } });
+  state = local.applyLocalMutation(state, { action: 'profile', data: { ...state.profile, macroTargets: { kcal: 2500, p: 150, c: 306, f: 75 } } });
+  assert.equal(local.snapshot(state).profile.macroTargets.c, 306);
 
   const meal = entry('meal', { name: 'Puuro', kcal: 400, p: 20, c: 50, f: 10 });
   state = local.applyLocalMutation(state, meal, Date.parse('2026-10-14T10:00:00Z'));
@@ -57,6 +59,7 @@ const workout = () => entry('workout', { program: 'foundation', sets: Array(6).f
   assert.equal(before.data.kcal, 400); // reducer did not mutate previous records
   await local.restoreLocalData(JSON.stringify(state));
   assert.equal((await client.readClientData()).profile.name, 'Lukas');
+  assert.equal((await client.readClientData()).profile.macroTargets.kcal, 2500);
   const backup = local.exportLocalData();
   await assert.rejects(() => local.restoreLocalData('{"version":9}'), /kelvollinen/);
   assert.equal(local.exportLocalData(), backup);

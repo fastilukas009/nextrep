@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Pencil, Plus, RotateCcw, Trash2, Utensils, X } from 'lucide-react';
+import { ArrowRight, Calculator, Camera, Check, ChevronLeft, ChevronRight, Pencil, Plus, RotateCcw, Trash2, Utensils, X } from 'lucide-react';
 import { Modal } from './court-tools';
-import { foodPresets, totals, type Entry, type Profile } from './model';
+import { MacroTargetEditor } from './macro-target-editor';
+import { remainingText, targetProgress } from './macro-targets';
+import { foodPresets, totals, type Entry, type MacroTargets, type Profile } from './model';
 
 export type MealValues = { name: string; kcal: string; p: string; c: string; f: string };
 const emptyMeal: MealValues = { name: '', kcal: '', p: '', c: '', f: '' };
@@ -37,19 +39,29 @@ export function MealEditor({ entry, entries, busy, submit, close }: { entry?: En
   </Modal>;
 }
 
-export function FoodDiary({ entries, profile, day, busy, add, edit, repeat, remove }: { entries: Entry[]; profile: Profile; day: string; busy: boolean; add: () => void; edit: (entry: Entry) => void; repeat: (entry: Entry) => void; remove: (entry: Entry) => Promise<boolean> }) {
+export function FoodDiary({ entries, profile, day, busy, add, edit, repeat, remove, saveTargets }: { entries: Entry[]; profile: Profile; day: string; busy: boolean; add: () => void; edit: (entry: Entry) => void; repeat: (entry: Entry) => void; remove: (entry: Entry) => Promise<boolean>; saveTargets: (targets: MacroTargets) => Promise<boolean> }) {
   const [selected, setSelected] = useState(day);
+  const [targetOpen, setTargetOpen] = useState(false);
   const [deleting, setDeleting] = useState<Entry | null>(null);
   const [deleteError, setDeleteError] = useState(false);
   const meals = entries.filter(e => e.kind === 'meal' && e.day === selected);
   const nutrition = totals(meals);
   function moveDay(offset: number) { const date = new Date(selected + 'T12:00:00Z'); date.setUTCDate(date.getUTCDate() + offset); setSelected(date.toISOString().slice(0, 10)); }
-  return <><div className="section-heading"><div><span className="eyebrow">RAVINTO</span><h1>Energiaa kentälle.</h1><p>Ateriat ja päivän makrot yhdellä silmäyksellä.</p></div><button className="primary" onClick={add}><Plus size={18}/>Lisää {selected === day ? 'ateria' : 'ateria tänään'}</button></div>
+  const target = profile.macroTargets;
+  const macroRows = target ? [
+    ['Energia', nutrition.kcal, target.kcal, 'kcal'],
+    ['Proteiini', nutrition.p, target.p, 'g'],
+    ['Hiilihydraatit', nutrition.c, target.c, 'g'],
+    ['Rasva', nutrition.f, target.f, 'g'],
+  ] as const : [];
+  return <><div className="section-heading"><div><span className="eyebrow">RAVINTO</span><h1>Energiaa kentälle.</h1><p>Ateriat, päivän makrot ja oma tavoite yhdellä silmäyksellä.</p></div><div className="button-row"><button className="secondary" onClick={() => setTargetOpen(true)}><Calculator size={17}/>{target ? 'Muokkaa tavoitetta' : 'Aseta makrotavoite'}</button><button className="primary" onClick={add}><Plus size={18}/>Lisää {selected === day ? 'ateria' : 'ateria tänään'}</button></div></div>
     <div className="date-selector"><button className="icon-btn" aria-label="Edellinen päivä" onClick={() => moveDay(-1)}><ChevronLeft size={19}/></button><label className="date-input"><span>{selected === day ? 'Tänään' : 'Päiväkirjan päivä'}</span><input aria-label="Päiväkirjan päivä" type="date" value={selected} max={day} onChange={e => { if (e.target.value && e.target.value <= day) setSelected(e.target.value); }}/></label><button className="icon-btn" aria-label="Seuraava päivä" disabled={selected >= day} onClick={() => moveDay(1)}><ChevronRight size={19}/></button>{selected !== day && <button className="text-btn" onClick={() => setSelected(day)}>Tänään</button>}</div>
     <div className="nutrition-strip">{[['Energia', nutrition.kcal, 'kcal'], ['Proteiini', nutrition.p, 'g'], ['Hiilihydraatit', nutrition.c, 'g'], ['Rasva', nutrition.f, 'g']].map(([label, amount, unit], i) => <div key={String(label)} className={`nutrient nutrient-${i}`}><span>{label}</span><strong>{Math.round(Number(amount))}<small>{unit}</small></strong></div>)}</div>
+    {target ? <section className="card macro-target-card"><div className="card-heading"><div><span className="eyebrow">PÄIVÄN ETENEMÄ</span><h2>{selected === day ? 'Tänään jäljellä' : 'Päivän tavoitevertailu'}</h2></div><button className="text-btn" onClick={() => setTargetOpen(true)}>Muokkaa</button></div><div className="macro-progress-grid">{macroRows.map(([label, value, goal, unit], index) => <div className={`macro-progress macro-progress-${index}`} key={label}><div><strong>{label}</strong><span>{remainingText(Number(value), Number(goal), unit)}</span></div><div className="progress"><i style={{ width: `${targetProgress(Number(value), Number(goal))}%` }}/></div><small>{Math.round(Number(value))} / {Math.round(Number(goal))} {unit}</small></div>)}</div></section> : <button className="card macro-empty-card" onClick={() => setTargetOpen(true)}><span className="square-icon mint"><Calculator size={21}/></span><span><strong>Laske päivän makrotavoite</strong><small>Aseta energia, proteiini ja rasva. Laskuri täydentää hiilihydraatit ja näyttää päivän jäljellä olevan määrän.</small></span><ArrowRight size={19}/></button>}
     <div className="two-col diary-columns"><section className="card"><div className="card-heading"><h2>Päivän ateriat</h2><span className="count-label">{meals.length} kirjausta</span></div>{meals.map(e => <div className="meal-row" key={e.id}><span className="square-icon"><Utensils size={20}/></span><div className="grow"><strong>{e.data.name}</strong><small>{new Date(e.at).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Helsinki' })} · P {e.data.p} / H {e.data.c} / R {e.data.f} g</small></div><strong>{e.data.kcal}<small>kcal</small></strong><div className="meal-actions"><button className="icon-btn" aria-label={`Muokkaa ateriaa ${e.data.name}`} onClick={() => edit(e)}><Pencil size={16}/></button><button className="icon-btn" disabled={busy} aria-label={`Poista ateria ${e.data.name}`} onClick={() => { setDeleting(e); setDeleteError(false); }}><Trash2 size={16}/></button></div></div>)}{!meals.length && <div className="empty"><div className="empty-icon"><Utensils size={27}/></div><h3>{selected === day ? 'Aloita yhdestä ateriasta.' : 'Ei kirjauksia tälle päivälle.'}</h3><p>{selected === day ? 'Kirjaa itse, laske annos tai käytä aiempaa ateriaa.' : 'Voit tarkastella toista päivää päivämäärävalitsimella.'}</p>{selected === day && <button className="secondary" onClick={add}><Plus size={17}/>Lisää ateria</button>}</div>}</section>
     <div className="stack"><section className="card"><span className="eyebrow">NOPEA LISÄYS</span><h2>Sama ateria uudestaan?</h2><p className="muted">Lisää viimeksi käyttämäsi annos tämän päivän päiväkirjaan.</p>{recentMeals(entries).length ? recentMeals(entries).slice(0, 3).map(e => <button className="list-row clickable" disabled={busy} key={e.id} onClick={() => repeat(e)}><span className="grow"><strong>{e.data.name}</strong><small>{e.data.kcal} kcal</small></span><Plus size={20}/></button>) : <p className="empty-inline">Aiemmat ateriasi ilmestyvät tähän.</p>}</section>
     <details className="card meal-ideas"><summary>Ateriaideoita päivään</summary>{[['AAMU', profile.diet === 'Maidoton' ? 'Kaurapuuro, marjat ja kananmuna' : 'Kaurapuuro, marjat ja jogurtti'], ['LOUNAS', profile.diet === 'Kasvis' ? 'Tofua, riisiä ja kasviksia' : 'Kanaa, riisiä ja kasviksia'], ['VÄLIPALA', 'Täysjyväleipä ja hedelmä'], ['ILTA', profile.diet === 'Kasvis' ? 'Linssipasta ja salaatti' : 'Kala, perunat ja salaatti']].map(([time, title]) => <div className="meal-idea" key={time}><small>{time}</small><strong>{title}</strong></div>)}<p className="tiny">Yleisiä ateriaideoita. Yksilölliset annoskoot suunnitellaan oman valmentajan kanssa.</p></details></div></div>
     {deleting && <Modal title="Poistetaanko ateria?" close={() => setDeleting(null)}><p>{deleting.data.name} poistetaan päiväkirjasta.</p>{deleteError && <p role="alert" className="form-error">Poisto ei onnistunut. Yritä uudelleen.</p>}<div className="button-row"><button className="secondary" onClick={() => setDeleting(null)}>Peruuta</button><button className="primary" disabled={busy} onClick={async () => { if (await remove(deleting)) setDeleting(null); else setDeleteError(true); }}>{busy ? 'Poistetaan…' : 'Poista ateria'}</button></div></Modal>}
+    {targetOpen && <MacroTargetEditor current={target} busy={busy} close={() => setTargetOpen(false)} save={saveTargets}/>}
   </>;
 }

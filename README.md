@@ -8,7 +8,7 @@ Julkaistu sovellus: **https://fastilukas009.github.io/nextrep/**
 
 GitHub Pages on käytössä. Julkaisulähde on **gh-pages-haaran juuri (/)**. Haara sisältää valmiin `docs/`-kansion tiedostot juuressaan. Main-haarassa säilyvät lähdekoodi ja valmis docs-versio. Erillistä käyttöönottoa ei tarvita.
 
-Tämä versio avautuu ilman tiliä tai ChatGPT-kirjautumista. Treenit, ateriat, heittohaasteet, taitoharjoitteet, videoiden manuaalinen tarkastelu, palkinnot ja profiili toimivat selaimessa. Valmiit kirjaukset tallentuvat paikallisesti selaimeen. **Oma profiili → Lataa varmuuskopio** tallentaa JSON-tiedoston, jonka voi palauttaa toisella laitteella. Selaintietojen tyhjentäminen poistaa paikalliset kirjaukset. Videot eivät tallennu päiväkirjaan eivätkä varmuuskopioon.
+Tämä versio avautuu ilman tiliä tai ChatGPT-kirjautumista. Treenit, ateriat, makrotavoitteen laskuri, heittohaasteet, taitoharjoitteet, ohjattu jumpshot-videoanalyysi, palkinnot ja profiili toimivat selaimessa. Valmiit kirjaukset tallentuvat paikallisesti selaimeen. **Oma profiili → Lataa varmuuskopio** tallentaa JSON-tiedoston, jonka voi palauttaa toisella laitteella. Selaintietojen tyhjentäminen poistaa paikalliset kirjaukset. Videot eivät tallennu päiväkirjaan eivätkä varmuuskopioon.
 
 Pages-versiossa ei ole yhteistä palvelinta: kirjautuminen, automaattinen laitteiden välinen synkronointi ja live-kisahuoneet eivät ole käytössä. Vanhan palvelinversion tietoja ei siirretä automaattisesti. Kolikot ja XP ovat paikallisia, eikä niitä voi käyttää varmennettuun julkiseen kilpailuun.
 
@@ -29,7 +29,8 @@ Tarkistukset: `pnpm test:pages`, `node tests/core.test.cjs` ja `node node_module
 - Three example workout plans with guided exercise navigation, set-by-set weights/reps, pauseable session timer, rest timer, notes and effort tracking. Minimize/resume an active session in the current page.
 - Three step-by-step skill drills.
 - Date-selectable meal diary, edit existing entries, repeat previous meals, multi-ingredient portion calculator and meal ideas.
-- Local video upload and camera recording; slow playback, frame stepping, three-point 2D angle measurement, saved personal observations.
+- Local video upload and camera recording; timeline seeking, slow playback, frame stepping, guided elbow/knee/body 2D measurements, repetition comparison and saved personal observations.
+- A daily macro-target calculator that derives carbohydrate grams from calories, protein and fat, then tracks daily remaining/over amounts.
 - Three manually scored solo shooting challenges and personal records.
 - Invite-code two-player rooms with server-timed countdown and 60-second competition, polled scores and player authorization.
 - XP, daily activity rewards, achievements and a cosmetic shop with server-side balance checks.
