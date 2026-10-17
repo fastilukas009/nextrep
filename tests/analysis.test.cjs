@@ -40,9 +40,14 @@ function poseFrame(index) {
 }
 const aiResult = ai.analyzePoseFrames(Array.from({ length: 12 }, (_, index) => poseFrame(index)), 'right');
 assert.ok(aiResult.confidence > 90);
+assert.ok(aiResult.shotConfidence >= 80);
 assert.equal(aiResult.releaseTime, .9);
+assert.ok(aiResult.metrics.elbowExtension > 0);
+assert.ok(aiResult.focus.title.length > 0);
+assert.ok(aiResult.focus.drill.length > 0);
 assert.ok(aiResult.pluses.length >= 4);
 assert.ok(!Object.hasOwn(ai.savedAiAnalysis(aiResult), 'releasePose'));
+assert.throws(() => ai.analyzePoseFrames(Array.from({ length: 12 }, (_, index) => ({ ...poseFrame(0), time: index / 10 })), 'right'), /selkeää heittoliikettä/);
 
 function shiftedFrame(frame, dx) {
   return { ...frame, landmarks: frame.landmarks.map(point => ({ ...point, x: point.x + dx })) };

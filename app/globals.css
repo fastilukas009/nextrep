@@ -378,11 +378,18 @@ dialog::backdrop { background:#10241975; backdrop-filter:blur(4px); }
 .ai-badge { display:flex; align-items:center; gap:6px; padding:7px 10px; border-radius:9px; background:#dff2e9; color:#2d7057; font-size:11px; font-weight:700; }
 .ai-empty { min-height:145px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:13px; padding:20px; text-align:center; color:#7b927f; }
 .ai-empty p { max-width:330px; margin:0; font-size:12px; line-height:1.65; }
-.ai-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:18px 0; }
+.ai-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:18px 0; }
 .ai-summary>div { padding:12px; border:1px solid #dce9e1; border-radius:11px; background:#f7fbf8; }
 .ai-summary small { display:block; min-height:27px; color:var(--muted); font-size:9px; line-height:1.4; }
 .ai-summary strong { display:block; margin-top:5px; font-family:Manrope,sans-serif; font-size:20px; }
 .ai-summary strong span { font-size:11px; margin-left:2px; color:var(--muted); }
+.ai-focus-card { padding:17px; margin:14px 0; border:1px solid #9fcab3; border-radius:14px; background:linear-gradient(135deg,#e8f7ef,#f5fae9); box-shadow:0 7px 22px #42765d1c; }
+.ai-focus-card h3 { margin:7px 0 5px; font-size:18px; }
+.ai-focus-card>p { margin:0; color:#426454; font-size:11px; line-height:1.55; }
+.ai-focus-card>div { display:flex; align-items:flex-start; gap:9px; padding:11px 12px; margin-top:13px; border-radius:10px; background:#fff9; color:#315943; }
+.ai-focus-card>div svg { flex-shrink:0; margin-top:2px; }
+.ai-focus-card>div span { display:flex; flex-direction:column; gap:3px; font-size:10px; line-height:1.5; }
+.ai-focus-card>div strong { font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
 .ai-feedback { padding:15px 16px; border-radius:12px; margin-top:12px; }
 .ai-feedback h3 { display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:13px; }
 .ai-feedback p { position:relative; margin:8px 0; padding-left:15px; font-size:11px; line-height:1.55; }
@@ -440,7 +447,6 @@ dialog::backdrop { background:#10241975; backdrop-filter:blur(4px); }
  .shooter-select-row { align-items:stretch; flex-direction:column; }
  .shooter-select-row>* { width:100%; justify-content:center; }
  .ai-summary { grid-template-columns:1fr 1fr; }
- .ai-summary>div:last-child { grid-column:1/-1; }
  .macro-progress-grid { gap:17px 14px; }
  .macro-empty-card { padding:17px; }
  .macro-empty-card small { font-size:10px; }

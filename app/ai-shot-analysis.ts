@@ -8,11 +8,12 @@ export type AiShotMetrics = {
   kneeSet: number; kneeRelease: number; kneeExtension: number;
   releaseHeight: number; timingDelay: number; bodyLean: number; bodyDrift: number;
 };
+export type AiShotFocus = { title: string; cue: string; drill: string };
 export type AiShotResult = {
   model: 'MediaPipe Pose Landmarker'; modelVersion: '1.1.1'; hand: ShootingHand;
-  confidence: number; samples: number; windowStart: number; windowEnd: number;
+  confidence: number; shotConfidence: number; samples: number; windowStart: number; windowEnd: number;
   setTime: number; releaseTime: number; metrics: AiShotMetrics;
-  pluses: string[]; improvements: string[]; cautions: string[]; releasePose: PoseLandmark[];
+  focus: AiShotFocus; pluses: string[]; improvements: string[]; cautions: string[]; releasePose: PoseLandmark[];
 };
 
 const MODULE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.1/vision_bundle.mjs';
@@ -126,18 +127,52 @@ export function selectShooterTrack(input: PoseDetectionFrame[], hand: ShootingHa
   return { frames, peopleDetected: Math.max(0, ...input.map(frame => frame.poses.length)), selection: target ? 'manual' as const : 'auto' as const };
 }
 
+function shotSequence(frames: PoseFrame[], hand: ShootingHand) {
+  const index = sideIndices[hand];
+  const candidates: Array<{ setFrame: PoseFrame; releaseFrame: PoseFrame; score: number; confidence: number }> = [];
+  for (let releaseIndex = 0; releaseIndex < frames.length - 2; releaseIndex++) {
+    const releaseFrame = frames[releaseIndex];
+    const releaseElbow = jointAngle(releaseFrame, index.shoulder, index.elbow, index.wrist);
+    const releaseKnee = jointAngle(releaseFrame, index.hip, index.knee, index.ankle);
+    if (releaseElbow === null || releaseKnee === null) continue;
+    const releaseScale = poseScale(releaseFrame);
+    const releaseHeight = (releaseFrame.landmarks[index.shoulder].y - releaseFrame.landmarks[index.wrist].y) / releaseScale;
+    if (releaseElbow < 105 || releaseHeight < .15) continue;
+    for (let setIndex = 0; setIndex < releaseIndex; setIndex++) {
+      const setFrame = frames[setIndex], duration = releaseFrame.time - setFrame.time;
+      if (duration < .12 || duration > 1.65) continue;
+      const setElbow = jointAngle(setFrame, index.shoulder, index.elbow, index.wrist);
+      const setKnee = jointAngle(setFrame, index.hip, index.knee, index.ankle);
+      if (setElbow === null || setKnee === null) continue;
+      const scale = Math.max(.03, (poseScale(setFrame) + releaseScale) / 2);
+      const wristLift = (setFrame.landmarks[index.wrist].y - releaseFrame.landmarks[index.wrist].y) / scale;
+      const elbowExtension = releaseElbow - setElbow;
+      const kneeExtension = releaseKnee - setKnee;
+      if (wristLift < .22 || elbowExtension < 12) continue;
+      const timingQuality = duration >= .2 && duration <= 1.25 ? 1 : .65;
+      const liftQuality = Math.min(1, wristLift / 1.15);
+      const elbowQuality = Math.min(1, elbowExtension / 48);
+      const heightQuality = Math.min(1, releaseHeight / .8);
+      const kneeQuality = Math.max(0, Math.min(1, kneeExtension / 35));
+      const afterRelease = frames.slice(releaseIndex + 1, releaseIndex + 4);
+      const stableFollowThrough = afterRelease.filter(frame => frame.landmarks[index.wrist].y <= releaseFrame.landmarks[index.shoulder].y + scale * .25).length / Math.max(1, afterRelease.length);
+      const confidence = Math.round((liftQuality * .28 + elbowQuality * .28 + heightQuality * .19 + timingQuality * .12 + kneeQuality * .07 + stableFollowThrough * .06) * 100);
+      const score = liftQuality * 3 + elbowQuality * 3 + heightQuality * 2 + timingQuality + kneeQuality * .7 + stableFollowThrough * .6;
+      candidates.push({ setFrame, releaseFrame, score, confidence });
+    }
+  }
+  if (!candidates.length) throw Error('AI ei löytänyt videosta selkeää heittoliikettä. Rajaa video yhteen heittoon: aloita juuri ennen latausta ja jätä mukaan saatto sekä laskeutuminen.');
+  const best = candidates.sort((a, b) => b.score - a.score)[0];
+  if (best.confidence < 55) throw Error('Heiton vaiheiden tunnistus jäi liian epävarmaksi. Kuvaa yksi kokonainen heitto sivulta ja pidä koko vartalo näkyvissä.');
+  return best;
+}
+
 export function analyzePoseFrames(input: PoseFrame[], hand: ShootingHand): AiShotResult {
   if (input.length < 8) throw Error('AI ei saanut videosta tarpeeksi selkeitä ruutuja. Kuvaa koko pelaaja sivulta paremmassa valossa.');
   const frames = input.filter(frame => frameQuality(frame, hand) >= .4);
   if (frames.length < Math.max(8, input.length * .35)) throw Error('Pelaajan nivelet eivät näkyneet riittävän monessa ruudussa. Rajaa kuva koko vartaloon ja vältä peittäviä pelaajia.');
   const index = sideIndices[hand];
-  const releaseFrame = frames.reduce((best, frame) => frame.landmarks[index.wrist].y < best.landmarks[index.wrist].y ? frame : best, frames[0]);
-  const beforeRelease = frames.filter(frame => frame.time <= releaseFrame.time);
-  const setFrame = beforeRelease.reduce((best, frame) => {
-    const value = jointAngle(frame, index.hip, index.knee, index.ankle) ?? 180;
-    const bestValue = jointAngle(best, index.hip, index.knee, index.ankle) ?? 180;
-    return value < bestValue ? frame : best;
-  }, beforeRelease[0]);
+  const sequence = shotSequence(frames, hand), { setFrame, releaseFrame } = sequence;
   const setElbow = jointAngle(setFrame, index.shoulder, index.elbow, index.wrist);
   const releaseElbow = jointAngle(releaseFrame, index.shoulder, index.elbow, index.wrist);
   const setKnee = jointAngle(setFrame, index.hip, index.knee, index.ankle);
@@ -147,7 +182,7 @@ export function analyzePoseFrames(input: PoseFrame[], hand: ShootingHand): AiSho
   const shoulders = midpoint(releaseFrame.landmarks[11], releaseFrame.landmarks[12]);
   const hips = midpoint(releaseFrame.landmarks[23], releaseFrame.landmarks[24]);
   const torso = Math.max(.03, distance(shoulders, hips));
-  const firstHips = midpoint(frames[0].landmarks[23], frames[0].landmarks[24]);
+  const firstHips = midpoint(setFrame.landmarks[23], setFrame.landmarks[24]);
   const elbowExtension = (releaseElbow as number) - (setElbow as number);
   const kneeExtension = (releaseKnee as number) - (setKnee as number);
   const releaseHeight = (releaseFrame.landmarks[index.shoulder].y - releaseFrame.landmarks[index.wrist].y) / torso;
@@ -160,28 +195,32 @@ export function analyzePoseFrames(input: PoseFrame[], hand: ShootingHand): AiSho
     releaseHeight: round(releaseHeight, 2), timingDelay: round(timingDelay, 2), bodyLean: round(bodyLean), bodyDrift: round(bodyDrift, 2),
   };
   const pluses: string[] = [], improvements: string[] = [], cautions: string[] = [];
-  if (elbowExtension >= 30) pluses.push(`Heittokäsi ojentuu selvästi: kyynärkulma kasvaa ${metrics.elbowExtension}°.`);
-  else improvements.push(`Heittokäden ojennus jää pieneksi (${metrics.elbowExtension}°). Kokeile viedä saatto loppuun asti rennosti.`);
-  if (kneeExtension >= 15) pluses.push(`Jalat osallistuvat voimantuottoon: polvikulma kasvaa ${metrics.kneeExtension}°.`);
-  else improvements.push(`Jaloista tuleva ojennus näkyy heikosti (${metrics.kneeExtension}°). Hae yhtenäinen ponnistus ennen käsien viimeistelyä.`);
-  if (releaseHeight >= .2) pluses.push('Ranne nousee olkapään yläpuolelle saatossa.');
-  else improvements.push('Saatto jää kuvassa matalaksi. Pyri viimeistelemään heittokäsi ylös kohti koria.');
-  if (timingDelay >= .12 && timingDelay <= 1.25) pluses.push(`Jalkojen latauksesta saattoon muodostuu yhtenäinen ${metrics.timingDelay} s liike.`);
-  else improvements.push('Jalkojen ja heittokäden ajoitus näyttää katkonaiselta. Kokeile yhtä jatkuvaa liikettä alhaalta ylös.');
+  const focusOptions: Array<{ severity: number; feedback: string; focus: AiShotFocus }> = [];
+  if (elbowExtension >= 28) pluses.push(`Heittokäsi ojentuu selvästi: kyynärkulma kasvaa ${metrics.elbowExtension}°.`);
+  else focusOptions.push({ severity: (28 - elbowExtension) / 28, feedback: `Heittokäden ojennus jää pieneksi (${metrics.elbowExtension}°).`, focus: { title: 'Vie saatto loppuun', cue: 'Ojenna kyynärpää ja jätä ranne rennosti alas kohti koria.', drill: 'Form shooting 3 × 10 läheltä. Pysäytä saatto jokaisella toistolla sekunniksi.' } });
+  if (kneeExtension >= 14) pluses.push(`Jalat osallistuvat voimantuottoon: polvikulma kasvaa ${metrics.kneeExtension}°.`);
+  else focusOptions.push({ severity: (14 - kneeExtension) / 20, feedback: `Jalkojen ojennus näkyy heikosti (${metrics.kneeExtension}°).`, focus: { title: 'Yhdistä jalat ja kädet', cue: 'Aloita pallon nousu samalla hetkellä, kun polvet lähtevät ojentumaan.', drill: 'One-motion shooting: 3 × 8 ilman hyppyä, sitten 3 × 5 kevyellä hypyllä.' } });
+  if (releaseHeight >= .35) pluses.push('Ranne nousee selvästi olkapään yläpuolelle saatossa.');
+  else focusOptions.push({ severity: (.35 - releaseHeight) / .35, feedback: 'Release jää kuvassa matalaksi.', focus: { title: 'Nosta release ylemmäs', cue: 'Vie pallo heittosilmän yläpuolelle ja viimeistele ranne korkealla.', drill: 'Wall form shooting 3 × 12: seiso lähellä seinää ja tee korkea saatto ilman pallon osumista seinään.' } });
+  if (timingDelay >= .18 && timingDelay <= 1.25) pluses.push(`Latauksesta releaseen muodostuu yhtenäinen ${metrics.timingDelay} s liike.`);
+  else focusOptions.push({ severity: timingDelay > 1.25 ? Math.min(1.5, (timingDelay - 1.25) / 1.25 + .4) : .7, feedback: `Jalkojen ja heittokäden ajoitus kestää ${metrics.timingDelay} s.`, focus: { title: 'Tee heitosta yksi liike', cue: 'Älä pysäytä palloa set pointiin: jatka liikettä jaloista suoraan saattoon.', drill: 'Rhythm shooting 3 × 8: sano ääneen “alas–ylös” ilman taukoa.' } });
   if (bodyLean <= 25) pluses.push(`Vartalon linja pysyy melko pystynä (${metrics.bodyLean}° kallistus).`);
-  else improvements.push(`Vartalo kallistuu release-vaiheessa noin ${metrics.bodyLean}°. Vertaa, säilyykö tasapaino seuraavissa toistoissa.`);
-  if (bodyDrift <= .55) pluses.push('Lantion sivuttaissiirtymä pysyy pienenä analysoidussa jaksossa.');
-  else improvements.push('Lantio siirtyy sivulle suhteessa vartalon kokoon. Tarkista jalkojen suunta ja tasapainoinen laskeutuminen.');
+  else focusOptions.push({ severity: (bodyLean - 25) / 30 + .3, feedback: `Vartalo kallistuu release-vaiheessa noin ${metrics.bodyLean}°.`, focus: { title: 'Pysy tasapainossa', cue: 'Pidä rintakehä lantion päällä ja katse korissa koko heiton ajan.', drill: 'Balance hold 3 × 6: heitä ja pysäytä laskeutuminen kahdeksi sekunniksi.' } });
+  if (bodyDrift <= .55) pluses.push('Lantion sivuttaissiirtymä pysyy pienenä heiton aikana.');
+  else focusOptions.push({ severity: Math.min(1.5, bodyDrift - .25), feedback: 'Lantio siirtyy heitossa sivulle suhteessa vartalon kokoon.', focus: { title: 'Laskeudu suoraan', cue: 'Suuntaa varpaat ja polvet kohti koria ja pidä ponnistuslinja suorana.', drill: 'Line landing 3 × 8: heitä lattialinjan päältä ja laskeudu samalle linjalle.' } });
+  focusOptions.sort((a, b) => b.severity - a.severity);
+  improvements.push(...focusOptions.slice(0, 3).map(item => `${item.feedback} ${item.focus.cue}`));
+  const focus = focusOptions[0]?.focus || { title: 'Vahvista toistettavuutta', cue: 'Pidä sama rytmi, release ja tasapainoinen laskeutuminen jokaisessa toistossa.', drill: '5 spot form shooting: 5 onnistunutta heittoa jokaisesta paikasta ja kuvaa viimeinen sarja.' };
 
   const meanVisibility = frames.reduce((sum, frame) => sum + frameQuality(frame, hand), 0) / frames.length;
   const confidence = Math.round(Math.min(1, meanVisibility * (frames.length / input.length)) * 100);
   if (confidence < 65) cautions.push('Tunnistuksen varmuus jäi matalaksi. Älä tee tämän videon perusteella isoja tekniikkamuutoksia.');
-  cautions.push('AI ei näe palloa tai koria, joten release-kohta on ranteen korkeimman pisteen arvio.');
+  cautions.push('AI ei näe palloa tai koria, joten release arvioidaan ranteen noususta ja kyynärpään ojennuksesta.');
   return {
-    model: 'MediaPipe Pose Landmarker', modelVersion: '1.1.1', hand, confidence, samples: frames.length,
+    model: 'MediaPipe Pose Landmarker', modelVersion: '1.1.1', hand, confidence, shotConfidence: sequence.confidence, samples: frames.length,
     windowStart: round(frames[0].time, 2), windowEnd: round(frames.at(-1)!.time, 2),
     setTime: round(setFrame.time, 2), releaseTime: round(releaseFrame.time, 2), metrics,
-    pluses: pluses.slice(0, 5), improvements: improvements.slice(0, 5), cautions, releasePose: releaseFrame.landmarks,
+    focus, pluses: pluses.slice(0, 5), improvements, cautions, releasePose: releaseFrame.landmarks,
   };
 }
 
@@ -198,8 +237,8 @@ function seekVideo(video: HTMLVideoElement, time: number) {
 
 export async function analyzeVideoWithPoseAi(video: HTMLVideoElement, hand: ShootingHand, startAt: number, onProgress: (progress: number, stage: string) => void, target?: ShooterTarget) {
   if (!Number.isFinite(video.duration) || video.duration <= 0) throw Error('Videon kestoa ei voitu lukea. Valitse toinen video.');
-  const windowLength = Math.min(8, video.duration);
-  const start = video.duration <= 8 ? 0 : Math.min(Math.max(0, startAt), video.duration - windowLength);
+  const windowLength = Math.min(12, video.duration);
+  const start = video.duration <= 12 ? 0 : Math.min(Math.max(0, startAt - 1.5), video.duration - windowLength);
   const end = Math.min(video.duration, start + windowLength);
   const sampleCount = Math.max(8, Math.floor((end - start) * 8) + 1);
   const times = Array.from({ length: sampleCount }, (_, i) => start + (end - start) * i / Math.max(1, sampleCount - 1));
@@ -223,7 +262,7 @@ export async function analyzeVideoWithPoseAi(video: HTMLVideoElement, hand: Shoo
       : `Videolla näkyi ${selected.peopleDetected} pelaajaa. AI valitsi heittäjän käsien nousun ja ojennusliikkeen perusteella.`);
     onProgress(100, 'Analyysi valmis'); return analysis;
   } catch (error) {
-    if (error instanceof Error && /tarpeeksi|nivelet|nivelkulmia|Videoruudun|seuraamaan samaa pelaajaa/.test(error.message)) throw error;
+    if (error instanceof Error && /tarpeeksi|nivelet|nivelkulmia|Videoruudun|seuraamaan samaa pelaajaa|heittoliikettä|vaiheiden tunnistus/.test(error.message)) throw error;
     throw Error('AI-mallia ei saatu käynnistettyä. Tarkista verkkoyhteys ja kokeile uudelleen.');
   } finally { try { landmarker?.close(); } catch {} }
 }
