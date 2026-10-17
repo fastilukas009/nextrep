@@ -86,7 +86,7 @@ export function ShotStudio({ save, notify, busy }: { save: (kind: string, data: 
   }
 
   return <>
-    <div className="section-heading"><div><span className="eyebrow">POSE AI + 2D-MITTAUS</span><h1>Jumpshot-analyysi</h1><p>AI seuraa heittäjää, tunnistaa oikean heittosekvenssin ja antaa yhden selkeän päätavoitteen.</p></div><span className="pill"><BrainCircuit size={14}/> {aiResult ? `${aiResult.shotConfidence} % heittovarmuus` : 'AI valmis videoon'}</span></div>
+    <div className="section-heading"><div><span className="eyebrow">POSE AI + 2D-MITTAUS</span><h1>Jumpshot-analyysi</h1><p>AI seuraa heittäjää, tunnistaa oikean heittosekvenssin ja antaa yhden selkeän päätavoitteen.</p></div><span className="pill"><BrainCircuit size={14}/> {aiResult ? `${aiResult.shotConfidence} % tunnistusvarmuus` : 'AI valmis videoon'}</span></div>
     <div className="shot-layout">
       <section className="card shot-video-card"><div className="card-heading"><div><h2>1. Valitse video</h2><p className="muted">Kuvaa sivulta, pidä puhelin paikallaan ja varmista, että koko pelaaja näkyy.</p></div></div>
         {url ? <>
