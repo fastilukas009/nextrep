@@ -12,6 +12,7 @@ function moduleAt(path, deps = {}) {
 
 const model = moduleAt('app/model.ts');
 const shot = moduleAt('app/shot-analysis.ts', { './model': model });
+const ai = moduleAt('app/ai-shot-analysis.ts');
 const macro = moduleAt('app/macro-targets.ts');
 const validation = moduleAt('app/validation.ts', { './model': model });
 
@@ -27,10 +28,27 @@ assert.equal(macro.targetProgress(3000, 2500), 100);
 assert.equal(macro.remainingText(2400, 2500, 'kcal'), '100 kcal jäljellä');
 assert.equal(macro.remainingText(2600, 2500, 'kcal'), '100 kcal yli');
 
+function poseFrame(index) {
+  const landmarks = Array.from({ length: 33 }, () => ({ x: .5, y: .5, z: 0, visibility: .98 }));
+  landmarks[11] = { x: .44, y: .4, z: 0, visibility: .98 }; landmarks[12] = { x: .5, y: .4, z: 0, visibility: .98 };
+  landmarks[23] = { x: .44, y: .62, z: 0, visibility: .98 }; landmarks[24] = { x: .5, y: .62, z: 0, visibility: .98 };
+  landmarks[14] = { x: .52, y: .31, z: 0, visibility: .98 }; landmarks[16] = { x: .52, y: .26, z: 0, visibility: .98 };
+  landmarks[26] = { x: .5, y: .78, z: 0, visibility: .98 }; landmarks[28] = { x: .5, y: .95, z: 0, visibility: .98 };
+  if (index === 2) { landmarks[14] = { x: .6, y: .48, z: 0, visibility: .98 }; landmarks[16] = { x: .54, y: .57, z: 0, visibility: .98 }; landmarks[26] = { x: .62, y: .74, z: 0, visibility: .98 }; landmarks[28] = { x: .5, y: .84, z: 0, visibility: .98 }; }
+  if (index === 9) { landmarks[14] = { x: .5, y: .28, z: 0, visibility: .98 }; landmarks[16] = { x: .5, y: .1, z: 0, visibility: .98 }; }
+  return { time: index / 10, landmarks };
+}
+const aiResult = ai.analyzePoseFrames(Array.from({ length: 12 }, (_, index) => poseFrame(index)), 'right');
+assert.ok(aiResult.confidence > 90);
+assert.equal(aiResult.releaseTime, .9);
+assert.ok(aiResult.pluses.length >= 4);
+assert.ok(!Object.hasOwn(ai.savedAiAnalysis(aiResult), 'releasePose'));
+
 const profile = validation.schemas.profile.parse({ ...model.defaultProfile, macroTargets: { kcal: 2500, p: 150, c: 306, f: 75 } });
 assert.equal(profile.macroTargets.c, 306);
 const review = validation.schemas.review.parse({ notes: '', checks: [true, false, true, false, true], angle: 88, duration: 12, measurements: [{ id: 'measurement-1', kind: 'elbow', angle: 88, time: 1.2, points: [{ x: .2, y: .2 }, { x: .3, y: .4 }, { x: .5, y: .3 }] }] });
 assert.equal(review.measurements.length, 1);
+assert.equal(validation.schemas.review.parse({ notes: '', checks: [], angle: null, ai: ai.savedAiAnalysis(aiResult) }).ai.confidence, aiResult.confidence);
 assert.throws(() => validation.schemas.review.parse({ notes: '', checks: [], angle: 90, measurements: [{ id: 'bad', kind: 'elbow', angle: 90, time: 1, points: [{ x: 2, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 1 }] }] }));
 
-console.log('PASS: jumpshot measurements, macro calculations and validation.');
+console.log('PASS: pose-AI feedback, jumpshot measurements, macro calculations and validation.');
