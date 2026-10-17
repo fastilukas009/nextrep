@@ -29,7 +29,7 @@ Tarkistukset: `pnpm test:pages`, `node tests/core.test.cjs` ja `node node_module
 - Three example workout plans with guided exercise navigation, set-by-set weights/reps, pauseable session timer, rest timer, notes and effort tracking. Minimize/resume an active session in the current page.
 - Three step-by-step skill drills.
 - Date-selectable meal diary, edit existing entries, repeat previous meals, multi-ingredient portion calculator and meal ideas.
-- Local video upload and camera recording; timeline seeking, slow playback, frame stepping, MediaPipe pose-AI analysis for up to eight seconds, separate strengths/development points, detection confidence, guided elbow/knee/body 2D measurements, repetition comparison and saved observations.
+- Local video upload and camera recording; timeline seeking, slow playback, frame stepping, MediaPipe pose-AI analysis for up to eight seconds, multi-player tracking with automatic or manually marked shooter selection, separate strengths/development points, detection confidence, guided elbow/knee/body 2D measurements, repetition comparison and saved observations.
 - A daily macro-target calculator that derives carbohydrate grams from calories, protein and fat, then tracks daily remaining/over amounts.
 - Three manually scored solo shooting challenges and personal records.
 - Invite-code two-player rooms with server-timed countdown and 60-second competition, polled scores and player authorization.

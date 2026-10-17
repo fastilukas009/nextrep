@@ -44,6 +44,27 @@ assert.equal(aiResult.releaseTime, .9);
 assert.ok(aiResult.pluses.length >= 4);
 assert.ok(!Object.hasOwn(ai.savedAiAnalysis(aiResult), 'releasePose'));
 
+function shiftedFrame(frame, dx) {
+  return { ...frame, landmarks: frame.landmarks.map(point => ({ ...point, x: point.x + dx })) };
+}
+function defenderFrame(index) {
+  const frame = poseFrame(0);
+  frame.time = index / 10;
+  if (index === 8) { frame.landmarks[14] = { x: .52, y: .3, z: 0, visibility: .98 }; frame.landmarks[16] = { x: .52, y: .18, z: 0, visibility: .98 }; }
+  return frame;
+}
+const multiPlayerDetections = Array.from({ length: 12 }, (_, index) => {
+  const shooter = shiftedFrame(poseFrame(index), -.22), defender = shiftedFrame(defenderFrame(index), .22);
+  return { time: index / 10, poses: (index % 2 ? [defender, shooter] : [shooter, defender]).map(({ landmarks, worldLandmarks }) => ({ landmarks, worldLandmarks })) };
+});
+const automaticShooter = ai.selectShooterTrack(multiPlayerDetections, 'right');
+assert.equal(automaticShooter.peopleDetected, 2);
+assert.equal(automaticShooter.selection, 'auto');
+assert.ok(automaticShooter.frames[0].landmarks[12].x < .4, 'automatic selection follows the shooter, not the defender');
+const markedShooter = ai.selectShooterTrack(multiPlayerDetections, 'right', { x: .72, y: .5, time: .5 });
+assert.equal(markedShooter.selection, 'manual');
+assert.ok(markedShooter.frames[0].landmarks[12].x > .6, 'manual player marker selects the requested person');
+
 const profile = validation.schemas.profile.parse({ ...model.defaultProfile, macroTargets: { kcal: 2500, p: 150, c: 306, f: 75 } });
 assert.equal(profile.macroTargets.c, 306);
 const review = validation.schemas.review.parse({ notes: '', checks: [true, false, true, false, true], angle: 88, duration: 12, measurements: [{ id: 'measurement-1', kind: 'elbow', angle: 88, time: 1.2, points: [{ x: .2, y: .2 }, { x: .3, y: .4 }, { x: .5, y: .3 }] }] });
