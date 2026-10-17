@@ -13,6 +13,7 @@ function moduleAt(path, deps = {}) {
 const model = moduleAt('app/model.ts');
 const shot = moduleAt('app/shot-analysis.ts', { './model': model });
 const ai = moduleAt('app/ai-shot-analysis.ts');
+const foodAi = moduleAt('app/food-ai.ts');
 const macro = moduleAt('app/macro-targets.ts');
 const validation = moduleAt('app/validation.ts', { './model': model });
 
@@ -27,6 +28,11 @@ assert.equal(macro.targetProgress(1250, 2500), 50);
 assert.equal(macro.targetProgress(3000, 2500), 100);
 assert.equal(macro.remainingText(2400, 2500, 'kcal'), '100 kcal jäljellä');
 assert.equal(macro.remainingText(2600, 2500, 'kcal'), '100 kcal yli');
+assert.equal(Object.keys(foodAi.foodProfiles).length, 101);
+assert.equal(JSON.stringify(foodAi.scaleFoodEstimate('grilled_salmon', 1)), JSON.stringify({ label: 'grilled_salmon', name: 'Grillattu lohi', grams: 250, kcal: 520, p: 55, c: 4, f: 31 }));
+assert.equal(foodAi.scaleFoodEstimate('pizza', 1.5).kcal, 1470);
+assert.equal(foodAi.scaleFoodEstimate('pizza', 4).grams, 800, 'portion scaling is capped at 2×');
+assert.throws(() => foodAi.scaleFoodEstimate('not_food', 1), /ravintoarviota/);
 
 function poseFrame(index) {
   const landmarks = Array.from({ length: 33 }, () => ({ x: .5, y: .5, z: 0, visibility: .98 }));

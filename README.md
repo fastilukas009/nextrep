@@ -28,7 +28,7 @@ Tarkistukset: `pnpm test:pages`, `node tests/core.test.cjs` ja `node node_module
 - Persistent signed-in profile, goal preferences and training diary.
 - Three example workout plans with guided exercise navigation, set-by-set weights/reps, pauseable session timer, rest timer, notes and effort tracking. Minimize/resume an active session in the current page.
 - Three step-by-step skill drills.
-- Date-selectable meal diary, edit existing entries, repeat previous meals, multi-ingredient portion calculator and meal ideas.
+- Date-selectable meal diary, edit existing entries, repeat previous meals, multi-ingredient portion calculator, meal ideas and in-browser Food-101 photo recognition with adjustable estimated portions and macros.
 - Local video upload and camera recording; timeline seeking, slow playback, frame stepping, MediaPipe pose-AI analysis for up to twelve seconds, multi-player tracking with automatic or manually marked shooter selection, validated set-to-release sequence detection, separate pose/shot confidence, one prioritized coaching cue and drill, guided elbow/knee/body 2D measurements, repetition comparison and saved observations.
 - A daily macro-target calculator that derives carbohydrate grams from calories, protein and fat, then tracks daily remaining/over amounts.
 - Three manually scored solo shooting challenges and personal records.
@@ -37,15 +37,14 @@ Tarkistukset: `pnpm test:pages`, `node tests/core.test.cjs` ja `node node_module
 - Responsive FastRep dashboard, five-section navigation, workout filters, activity history/details, weekly progress and web-app manifest.
 
 ## Not implemented yet
-- Food-photo AI recognition. Selecting a food photo does not estimate macros.
-- Automatic made/missed shot detection and video-based result verification. Pose-AI technique feedback is implemented, but it does not detect the ball or basket and estimates release from the shooting wrist's highest point.
+- Automatic made/missed shot detection and video-based result verification. Pose-AI technique feedback is implemented, but it does not detect the ball or basket and estimates release from wrist rise and elbow extension.
 - Coach-approved individualized PT and diet plans; the current content is explicitly labeled example material.
 - Uploaded coach instruction videos, public verified leaderboard, public matchmaking, sponsors and advertising.
 - App Store packaging and multi-user field testing on real phones.
 
 Unfinished workout drafts stay in page memory and are lost on a full page reload; the app warns before leaving an active session. Completed workouts save structured logs in the existing entry JSON, without migrating or replacing earlier data.
 
-Recorded videos and food photos stay in browser memory; they are not uploaded. Pose inference runs on video frames in the browser; the MediaPipe package may send Google technical utilization and performance metrics. Only the saved analysis values, measurements and notes are written to the diary. Download a recorded video before leaving the page. Profile, diary records, notes and rewards are stored in D1 under the authenticated user's Sites-specific ID. Only the player's name and manually entered score are shared with the other participant in an invited room. A private Site requires granting the invited player access before live play. No personal founder details are included.
+Recorded videos and food photos stay in browser memory; they are not uploaded. Pose inference and food-photo inference run in the browser. The MediaPipe package may send Google technical utilization and performance metrics, and the Food-101 model is downloaded from Hugging Face and cached by the browser. Only saved analysis values, measurements, macro estimates and notes are written to the diary. Download a recorded video before leaving the page. Profile, diary records, notes and rewards are stored in D1 under the authenticated user's Sites-specific ID. Only the player's name and manually entered score are shared with the other participant in an invited room. A private Site requires granting the invited player access before live play. No personal founder details are included.
 
 The first completion of each activity kind per Helsinki calendar day earns rewards. Repeat sessions are saved without additional daily rewards. The UI loads the latest 300 diary records; lifetime XP and coin balances use all entries. Times and hosted accounts are controlled by the server. Competition results are unverified and have no cash value.
 
