@@ -68,10 +68,26 @@ export function scaleFoodEstimate(label: string, factor = 1): FoodMacroEstimate 
   const profile = foodProfiles[label];
   if (!profile) throw Error('Ruokalajin ravintoarviota ei löytynyt.');
   const safeFactor = Math.min(2, Math.max(.5, factor));
+  return estimateFoodByGrams(label, Math.round(profile.grams * safeFactor));
+}
+
+export function estimateFoodByGrams(label: string, grams: number): FoodMacroEstimate {
+  const profile = foodProfiles[label];
+  if (!profile) throw Error('Ruokalajin ravintoarviota ei löytynyt.');
+  if (!Number.isInteger(grams) || grams < 1 || grams > 3000) throw Error('Anna määrä väliltä 1–3000 grammaa.');
+  const factor = grams / profile.grams;
   return {
-    label, name: profile.name, grams: Math.round(profile.grams * safeFactor), kcal: Math.round(profile.kcal * safeFactor),
-    p: Math.round(profile.p * safeFactor * 10) / 10, c: Math.round(profile.c * safeFactor * 10) / 10, f: Math.round(profile.f * safeFactor * 10) / 10,
+    label, name: profile.name, grams, kcal: Math.round(profile.kcal * factor),
+    p: Math.round(profile.p * factor * 10) / 10, c: Math.round(profile.c * factor * 10) / 10, f: Math.round(profile.f * factor * 10) / 10,
   };
+}
+
+export function searchFoodProfiles(query: string): { label: string; name: string; grams: number }[] {
+  const normalized = query.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (normalized.length < 2) return [];
+  return Object.entries(foodProfiles).filter(([label, profile]) =>
+    `${label.replace(/_/g, ' ')} ${profile.name}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(normalized)
+  ).slice(0, 8).map(([label, profile]) => ({ label, name: profile.name, grams: profile.grams }));
 }
 
 let classifierPromise: Promise<any> | null = null;

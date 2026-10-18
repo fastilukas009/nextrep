@@ -33,6 +33,14 @@ assert.equal(JSON.stringify(foodAi.scaleFoodEstimate('grilled_salmon', 1)), JSON
 assert.equal(foodAi.scaleFoodEstimate('pizza', 1.5).kcal, 1470);
 assert.equal(foodAi.scaleFoodEstimate('pizza', 4).grams, 800, 'portion scaling is capped at 2×');
 assert.throws(() => foodAi.scaleFoodEstimate('not_food', 1), /ravintoarviota/);
+assert.equal(foodAi.estimateFoodByGrams('pizza', 100).kcal, 245, 'one pizza slice can be estimated without the old half-portion limit');
+assert.equal(foodAi.estimateFoodByGrams('grilled_salmon', 125).p, 27.5);
+assert.throws(() => foodAi.estimateFoodByGrams('pizza', 0), /1–3000/);
+assert.throws(() => foodAi.estimateFoodByGrams('pizza', Number.NaN), /1–3000/);
+assert.throws(() => foodAi.estimateFoodByGrams('pizza', 3001), /1–3000/);
+assert.ok(foodAi.searchFoodProfiles('lohi').some(item => item.label === 'grilled_salmon'));
+assert.ok(foodAi.searchFoodProfiles('creme').some(item => item.label === 'creme_brulee'));
+assert.equal(foodAi.searchFoodProfiles('x').length, 0);
 
 function poseFrame(index) {
   const landmarks = Array.from({ length: 33 }, () => ({ x: .5, y: .5, z: 0, visibility: .98 }));
