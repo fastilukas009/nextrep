@@ -1,6 +1,6 @@
 # FastRep on julkaistu
 
-Avaa sovellus: **https://fastilukas009.github.io/nextrep/**
+Avaa sovellus: **https://userfast-0-09.github.io/nextrep/**
 
 Sovellus toimii ilman ChatGPT-kirjautumista. GitHub Pages on käytössä ja julkaisee **gh-pages-haaran juuresta (/)**. Asetuksia ei tarvitse enää muuttaa.
 
