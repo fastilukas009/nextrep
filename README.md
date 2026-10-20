@@ -4,7 +4,7 @@ A Finnish, mobile-first training app for basketball players. React + TypeScript,
 
 ## GitHub Pages – avaa FastRep selaimessa
 
-Julkaistu sovellus: **https://fastilukas009.github.io/nextrep/**
+Julkaistu sovellus: **https://userfast-0-09.github.io/nextrep/**
 
 GitHub Pages on käytössä. Julkaisulähde on **gh-pages-haaran juuri (/)**. Haara sisältää valmiin `docs/`-kansion tiedostot juuressaan. Main-haarassa säilyvät lähdekoodi ja valmis docs-versio. Erillistä käyttöönottoa ei tarvita.
 
@@ -60,7 +60,7 @@ Use Node 22.13+ and the supplied lockfile. Install dependencies with `pnpm insta
 D1 schema lives in `db/schema.ts`; generated migrations are in `drizzle/`. Bind `DB` in `.openai/hosting.json`. The publication workflow applies migrations. Local preview migrations are separate.
 
 ## GitHub
-Public source mirror: https://github.com/fastilukas009/nextrep. The repository URL and `/api/nextrep` compatibility endpoint are retained after the FastRep rename. The default server build retains its D1 database and authentication. The separate `build:pages` target creates the browser-local GitHub Pages version described above. Never commit runtime credentials or `.env` files.
+Public source mirror: https://github.com/userfast-0-09/nextrep. The repository URL and `/api/nextrep` compatibility endpoint are retained after the FastRep rename. The default server build retains its D1 database and authentication. The separate `build:pages` target creates the browser-local GitHub Pages version described above. Never commit runtime credentials or `.env` files.
 
 ## Validation
 TypeScript compilation, production build and API/core checks are run before deployment. The API checks execute the actual route handlers against an isolated in-memory SQLite adapter. Browser and device testing has not been performed in this environment; camera permissions/codec support, accessibility and two-phone live play still need real-device verification.
